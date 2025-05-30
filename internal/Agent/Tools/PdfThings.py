@@ -5,6 +5,8 @@ from langchain_chroma import Chroma
 from pathlib import Path
 from langchain.tools import tool
 from internal.Agent.memory import AgentState
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
 
 @tool
 def document_loader(state: AgentState, path: str) -> AgentState:
@@ -12,7 +14,7 @@ def document_loader(state: AgentState, path: str) -> AgentState:
     if not os.path.exists(path):
         raise FileNotFoundError(f"PDF file not found: {path}")
 
-    if path in '.pdf':
+    if not path.lower().endswith('.pdf'):
         doc = PyPDFLoader(path)
 
     pages = doc.load()
@@ -25,22 +27,29 @@ def document_loader(state: AgentState, path: str) -> AgentState:
     pages_split = text_splitter.split_documents(pages)
 
     dir_name = 'internal/DataBase/VectorBase'
-    file_name = str(Path(path).stem)
+    file_name = 'vectordb'
 
     if not os.path.exists(dir_name):
         os.mkdir(dir_name)
 
-    embedding = None
+    embedding = HuggingFaceEmbeddings(
+        model_name="internal/Agent/Models/models--intfloat--e5-large",
+        encode_kwargs={"normalize_embeddings": True} 
+    )
     
     try:
-        vector_store = Chroma(
-            document=pages_split,
-            collection_name=file_name,
-            persist_directory=dir_name,
-            embedding=embedding
-        )
-        state['vectordb'] = vector_store
-        print("Created ChromaDB vector store!")
+        if 'vectordb' in state and state['vectordb'] is not None:
+            state['vectordb'].add_documents(pages_split)
+        else:
+            vector_store = Chroma.from_documents(
+                documents=pages_split,
+                embedding=embedding,
+                persist_directory=dir_name,
+                collection_name=file_name
+            )
+            state['vectordb'] = vector_store
+
+        print("Updated ChromaDB vector store!")
     
     except Exception as e:
         print(f"Error setting up ChromaDB: {str(e)}")

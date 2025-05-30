@@ -1,2 +1,3 @@
 .venv
 internal/.env
+internal/Agent/Models/models--intfloat--e5-large
