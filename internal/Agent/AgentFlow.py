@@ -1,18 +1,26 @@
 from langchain_openai import ChatOpenAI
 from langgraph.graph import START, END, StateGraph
 from .memory import AgentState
-from dotenv import load_dotenv
 from Node.LLMNode import llm_node
 from Node.SetupNode import setup_node
 
-load_dotenv()
+def should_tool_call() -> str:
+    pass
 
-def create_agent():
-    llm = ChatOpenAI(temperature=0.0, model='gpt-4o-mini')
-
+def create_agent() -> None:
     graph = StateGraph(AgentState)
 
     graph.add_node('setup_node', setup_node)
     graph.add_node('llm_node', llm_node)
 
+    graph.add_edge(START, 'setup_node')
+    graph.add_edge('setup_node', 'llm_node')
+    graph.add_conditional_edges(
+        'llm_node',
+        should_tool_call,
+        {
+            'CoT': 'tool_node',
+            'end': END
+        }
+    )
 
