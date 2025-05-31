@@ -9,7 +9,7 @@ def should_tool_call(state: AgentState):
     result = state['messages'][-1]
     return hasattr(result, 'tool_calls') and len(result.tool_calls) > 0
 
-def create_agent() -> None:
+def create_agent()  :
     graph = StateGraph(AgentState)
 
     graph.add_node('setup_node', setup_node)
@@ -29,4 +29,4 @@ def create_agent() -> None:
     graph.add_edge('tool_execute_node', 'llm_node')
 
     agent = graph.compile()
-    return agent
+    return agent 

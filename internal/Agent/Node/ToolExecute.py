@@ -18,8 +18,7 @@ def tool_execute_node(state: AgentState) -> AgentState:
             print(f"Result length: {len(str(result))}")
             
 
-        # Appends the Tool Message
         results.append(ToolMessage(tool_call_id=t['id'], name=t['name'], content=str(result)))
-
+    state['messages'].append(results)
     print("Tools Execution Complete. Back to the model!")
-    return {'messages': results}
+    return state

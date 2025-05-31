@@ -12,7 +12,6 @@ def llm_node(state: AgentState) -> AgentState:
     Then After the llm call depend on the response call the end or again use tool.'''
     tools = [document_loader, retriever_in_db]
     llm = ChatOpenAI(temperature=0.0, model='gpt-4o-mini', api_key=os.getenv('OPENAI_API_KEY')).bind_tools(tools=tools)
-    print(state['messages'])
-    response = llm.invoke(state['messages'])
+    response = llm.invoke(list(state['messages']))
     state['messages'].append(response)
     return state
